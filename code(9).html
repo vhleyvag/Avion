@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifica tu aprendizaje</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .quiz-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+        .instructions {
+            background-color: #eef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 5px solid #55a;
+        }
+        .question-container {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .question-text {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .options-list {
+            list-style: none;
+            padding: 0;
+        }
+        .options-list li {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .options-list input[type="radio"] {
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .options-list label {
+            cursor: pointer;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+            flex-grow: 1;
+        }
+        .options-list label:hover {
+            background-color: #f0f0f0;
+        }
+        .feedback {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .feedback.correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .feedback.incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin-top: 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .navigation-buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .results-container {
+            text-align: center;
+            padding: 20px;
+            background-color: #e9f7ef;
+            border-radius: 5px;
+            border: 1px solid #a9d1b9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="quiz-container">
+        <h1 id="quiz-title">Verifica tu aprendizaje</h1>
+        <p class="instructions" id="quiz-instructions">Responde las siguientes preguntas sobre el análisis del movimiento de un avión antes del despegue, utilizando conceptos de hojas de cálculo y cinemática.</p>
+
+        <div id="question-area">
+            <!-- Questions will be loaded here by JavaScript -->
+        </div>
+
+        <div class="navigation-buttons">
+            <button id="submit-answer" onclick="submitAnswer()" disabled>Enviar Respuesta</button>
+            <button id="next-question" onclick="loadNextQuestion()" style="display:none;">Siguiente Pregunta</button>
+        </div>
+
+        <div id="results-area" class="results-container" style="display:none;">
+            <h2>Results of the Quiz</h2>
+            <p id="score-text"></p>
+            <button onclick="restartQuiz()">Reiniciar Cuestionario</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+          {
+            "id": 1,
+            "question": "¿Qué valores se colocan en el rango de celdas A5:A249 de la hoja de cálculo?",
+            "options": [
+              { "text": "Valores de aceleración medidos experimentalmente.", "correct": false, "feedback": "Incorrecto. Esos valores se encuentran en el rango B5:B249." },
+              { "text": "Valores de tiempo desde 0 hasta 18.544 con incrementos de 0.076 segundos.", "correct": true, "feedback": "¡Bien hecho! El rango A5:A249 representa los valores de tiempo con tres cifras decimales." },
+              { "text": "Valores de distancia calculados con la ecuación cinemática.", "correct": false, "feedback": "Incorrecto. Los valores de distancia están en el rango E5:E249." },
+              { "text": "Valores de velocidad inicial y final.", "correct": false, "feedback": "Incorrecto. La velocidad está en el rango D5:D249, no en A5:A249." }
+            ]
+          },
+          {
+            "id": 2,
+            "question": "¿Qué fórmula se utiliza en la celda E1 para obtener la aceleración promedio?",
+            "options": [
+              { "text": "=PROMEDIO(A5:A249)", "correct": false, "feedback": "Incorrecto. Esa fórmula calcularía el promedio del tiempo." },
+              { "text": "=PROMEDIO(B5:B249)", "correct": true, "feedback": "¡Bien hecho! Se promedian los valores de aceleración experimental en B5:B249." },
+              { "text": "=MEDIA(B5:B249)", "correct": false, "feedback": "Incorrecto. La función correcta en Excel es PROMEDIO, no MEDIA." },
+              { "text": "=PROMEDIO(C5:C249)", "correct": false, "feedback": "Incorrecto. La columna C contiene ya el valor promedio copiado, no los datos experimentales." }
+            ]
+          },
+          {
+            "id": 3,
+            "question": "¿Qué valores se copian en el rango C5:C249?",
+            "options": [
+              { "text": "Los valores de tiempo de A5:A249.", "correct": false, "feedback": "Incorrecto. El tiempo está en la columna A." },
+              { "text": "El valor de E$1 (aceleración promedio) repetido en todas las celdas.", "correct": true, "feedback": "¡Bien hecho! La columna C contiene el mismo valor de aceleración promedio mediante una referencia absoluta." },
+              { "text": "Los valores de velocidad calculados en D5:D249.", "correct": false, "feedback": "Incorrecto. Esos se calculan en la columna D." },
+              { "text": "Los valores de distancia obtenidos en E5:E249.", "correct": false, "feedback": "Incorrecto. La distancia está en la columna E." }
+            ]
+          },
+          {
+            "id": 4,
+            "question": "¿Qué fórmula se escribe en la celda D5 para calcular la velocidad en función del tiempo, usando referencias absolutas y relativas?",
+            "options": [
+              { "text": "=$B$1+$E$1*$A$5", "correct": false, "feedback": "Incorrecto. Aunque devuelve el mismo resultado, aquí todas las referencias están fijadas con $. Esto limita la copia de la fórmula hacia abajo en la columna y no es lo solicitado." },
+              { "text": "=B1+E1*A5", "correct": false, "feedback": "Incorrecto. No mantiene fijos los valores de la velocidad inicial ni de la aceleración promedio." },
+              { "text": "=B$1+E$1*A5", "correct": true, "feedback": "¡Bien hecho! Se usan referencias mixtas para fijar los valores de la velocidad inicial y la aceleración promedio, mientras que el tiempo se mantiene relativo." },
+              { "text": "=B$1+C5*A5", "correct": false, "feedback": "Incorrecto. Aunque C5 contiene la aceleración promedio, la instrucción pide usar E$1 directamente." }
+            ]
+          },
+          {
+            "id": 5,
+            "question": "¿Qué fórmula se escribe en la celda E5 para calcular la distancia recorrida, usando referencias absolutas y relativas?",
+            "options": [
+              { "text": "=B$2+B$1*A5+0.5*E$1*A5^2", "correct": true, "feedback": "¡Bien hecho! Se emplean referencias mixtas para fijar la posición inicial, la velocidad inicial y la aceleración promedio, mientras el tiempo se mantiene como referencia relativa." },
+              { "text": "=B2+B1*A5+0.5*E1*A5^2", "correct": false, "feedback": "Incorrecto. Ninguna de las referencias está fijada, por lo que al copiar la fórmula se alterarían las celdas base." },
+              { "text": "=$B$2+$B$1*A5+0.5*$E$1*$A$5^2", "correct": false, "feedback": "Incorrecto. Todas las referencias están fijadas con $, lo cual impide que la fórmula se copie de manera flexible hacia abajo." },
+              { "text": "=B$2+C5*A5^2", "correct": false, "feedback": "Incorrecto. Esta fórmula omite el término de velocidad inicial y no usa la forma correcta de la ecuación cinemática." }
+            ]
+          },
+          {
+            "id": 6,
+            "question": "¿Por qué se utilizan referencias absolutas como B$1 o E$1 en las fórmulas?",
+            "options": [
+              { "text": "Para que al copiar la fórmula a otras celdas, esas referencias no cambien.", "correct": true, "feedback": "¡Bien hecho! Así se mantienen constantes los valores iniciales o promedios." },
+              { "text": "Para que Excel detecte automáticamente las gráficas.", "correct": false, "feedback": "Incorrecto. Las referencias absolutas no tienen relación con la creación de gráficas." },
+              { "text": "Para evitar errores de redondeo en los cálculos.", "correct": false, "feedback": "Incorrecto. Las referencias absolutas no afectan el redondeo." },
+              { "text": "Para que Excel bloquee la celda y no pueda modificarse.", "correct": false, "feedback": "Incorrecto. Eso se logra con la opción de proteger hoja, no con referencias absolutas." }
+            ]
+          },
+          {
+            "id": 7,
+            "question": "¿Qué tipo de gráfica se utiliza para representar los valores experimentales de aceleración en B5:B249?",
+            "options": [
+              { "text": "Gráfica de dispersión (XY).", "correct": true, "feedback": "¡Bien hecho! Los datos experimentales se representan como puntos en una gráfica de dispersión." },
+              { "text": "Gráfica de barras.", "correct": false, "feedback": "Incorrecto. Una gráfica de barras no es adecuada para series continuas de tiempo." },
+              { "text": "Gráfica de pastel.", "correct": false, "feedback": "Incorrecto. La gráfica de pastel se usa para proporciones, no para series temporales." },
+              { "text": "Gráfica de área.", "correct": false, "feedback": "Incorrecto. La de área rellena bajo la curva, no es lo adecuado aquí." }
+            ]
+          },
+          {
+            "id": 8,
+            "question": "¿Qué tipo de gráfica se utiliza para representar la aceleración promedio en C5:C249?",
+            "options": [
+              { "text": "Gráfica de dispersión (XY).", "correct": false, "feedback": "Incorrecto. La dispersión se usa para datos experimentales, no para un valor constante." },
+              { "text": "Gráfica de líneas.", "correct": true, "feedback": "¡Bien hecho! La aceleración promedio es un valor constante y se representa como línea horizontal." },
+              { "text": "Gráfica de pastel.", "correct": false, "feedback": "Incorrecto. La de pastel no aplica en este caso." },
+              { "text": "Gráfica de columnas.", "correct": false, "feedback": "Incorrecto. La de columnas no muestra bien la constancia del valor." }
+            ]
+          },
+          {
+            "id": 9,
+            "question": "Al observar la gráfica 'Velocidad del avión antes del despegue', ¿qué característica confirma que se utilizó una aceleración promedio constante?",
+            "options": [
+              { "text": "La curva de la velocidad es parabólica.", "correct": false, "feedback": "Incorrecto. Una curva parabólica indicaría aceleración variable." },
+              { "text": "La gráfica es una línea recta con pendiente positiva.", "correct": true, "feedback": "¡Bien hecho! Una aceleración constante produce un crecimiento lineal de la velocidad en función del tiempo." },
+              { "text": "La gráfica muestra una serie de puntos dispersos.", "correct": false, "feedback": "Incorrecto. Eso corresponde a los datos experimentales de aceleración." },
+              { "text": "La gráfica se mantiene horizontal.", "correct": false, "feedback": "Incorrecto. Una línea horizontal indicaría velocidad constante." }
+            ]
+          },
+          {
+            "id": 10,
+            "question": "En la gráfica 'Distancia del avión antes del despegue', ¿qué aspecto indica que se aplicó la ecuación cinemática con aceleración constante?",
+            "options": [
+              { "text": "La distancia aumenta de forma lineal con el tiempo.", "correct": false, "feedback": "Incorrecto. Un aumento lineal correspondería a velocidad constante, no a aceleración constante." },
+              { "text": "La curva es parabólica, mostrando un crecimiento acelerado.", "correct": true, "feedback": "¡Bien hecho! La fórmula x=x0+v0t+0.5at² genera una parábola." },
+              { "text": "La distancia se mantiene constante durante todo el proceso.", "correct": false, "feedback": "Incorrecto. Eso ocurriría si no hubiera movimiento." },
+              { "text": "La gráfica tiene pendiente negativa.", "correct": false, "feedback": "Incorrecto. Una pendiente negativa indicaría que la distancia disminuye, lo cual no ocurre aquí." }
+            ]
+          }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let shuffledQuestions = [];
+
+        const quizTitleEl = document.getElementById('quiz-title');
+        const quizInstructionsEl = document.getElementById('quiz-instructions');
+        const questionAreaEl = document.getElementById('question-area');
+        const submitAnswerBtn = document.getElementById('submit-answer');
+        const nextQuestionBtn = document.getElementById('next-question');
+        const resultsAreaEl = document.getElementById('results-area');
+        const scoreTextEl = document.getElementById('score-text');
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function loadQuiz() {
+            quizTitleEl.textContent = "Verifica tu aprendizaje";
+            quizInstructionsEl.textContent = "Responde las siguientes preguntas sobre el análisis del movimiento de un avión antes del despegue, utilizando conceptos de hojas de cálculo y cinemática.";
+
+            shuffledQuestions = [...quizData];
+            shuffleArray(shuffledQuestions);
+
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            questionAreaEl.innerHTML = '';
+            submitAnswerBtn.style.display = 'inline-block';
+            nextQuestionBtn.style.display = 'none';
+            submitAnswerBtn.disabled = true;
+
+            if (currentQuestionIndex < shuffledQuestions.length) {
+                const currentQuestion = shuffledQuestions[currentQuestionIndex];
+                const questionContainer = document.createElement('div');
+                questionContainer.classList.add('question-container');
+
+                const questionText = document.createElement('p');
+                questionText.classList.add('question-text');
+                questionText.textContent = `${currentQuestionIndex + 1}. ${currentQuestion.question}`;
+                questionContainer.appendChild(questionText);
+
+                const optionsList = document.createElement('ul');
+                optionsList.classList.add('options-list');
+
+                const shuffledOptions = [...currentQuestion.options];
+                shuffleArray(shuffledOptions);
+
+                shuffledOptions.forEach((option, index) => {
+                    const listItem = document.createElement('li');
+                    const radioInput = document.createElement('input');
+                    radioInput.type = 'radio';
+                    radioInput.name = `question-${currentQuestionIndex}`;
+                    radioInput.id = `q${currentQuestionIndex}-option${index}`;
+                    radioInput.value = option.text;
+                    radioInput.onchange = () => { submitAnswerBtn.disabled = false; };
+
+                    const label = document.createElement('label');
+                    label.htmlFor = `q${currentQuestionIndex}-option${index}`;
+                    label.textContent = option.text;
+
+                    listItem.appendChild(radioInput);
+                    listItem.appendChild(label);
+                    optionsList.appendChild(listItem);
+                });
+
+                questionContainer.appendChild(optionsList);
+                const feedbackDiv = document.createElement('div');
+                feedbackDiv.id = `feedback-${currentQuestionIndex}`;
+                feedbackDiv.classList.add('feedback');
+                questionContainer.appendChild(feedbackDiv);
+
+                questionAreaEl.appendChild(questionContainer);
+            } else {
+                showResults();
+            }
+        }
+
+        function submitAnswer() {
+            const currentQuestion = shuffledQuestions[currentQuestionIndex];
+            const selectedOptionElement = document.querySelector(`input[name="question-${currentQuestionIndex}"]:checked`);
+
+            if (!selectedOptionElement) {
+                alert("Por favor, selecciona una opción.");
+                return;
+            }
+
+            const selectedOptionText = selectedOptionElement.value;
+            const selectedOptionData = currentQuestion.options.find(option => option.text === selectedOptionText);
+
+            const feedbackDiv = document.getElementById(`feedback-${currentQuestionIndex}`);
+
+            if (selectedOptionData.correct) { // Note: 'correct' is used in JSON, not 'isCorrect'
+                feedbackDiv.textContent = selectedOptionData.feedback;
+                feedbackDiv.classList.remove('incorrect');
+                feedbackDiv.classList.add('correct');
+                score++;
+            } else {
+                feedbackDiv.textContent = selectedOptionData.feedback;
+                feedbackDiv.classList.remove('correct');
+                feedbackDiv.classList.add('incorrect');
+            }
+
+            document.querySelectorAll(`input[name="question-${currentQuestionIndex}"]`).forEach(input => {
+                input.disabled = true;
+            });
+            submitAnswerBtn.disabled = true;
+            submitAnswerBtn.style.display = 'none';
+            nextQuestionBtn.style.display = 'inline-block';
+
+            if (currentQuestionIndex === shuffledQuestions.length - 1) {
+                nextQuestionBtn.textContent = "Ver Resultados";
+            }
+        }
+
+        function loadNextQuestion() {
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+
+        function showResults() {
+            questionAreaEl.style.display = 'none';
+            submitAnswerBtn.style.display = 'none';
+            nextQuestionBtn.style.display = 'none';
+            resultsAreaEl.style.display = 'block';
+            scoreTextEl.textContent = `Obtuviste ${score} de ${shuffledQuestions.length} preguntas correctas.`;
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            questionAreaEl.style.display = 'block';
+            resultsAreaEl.style.display = 'none';
+            nextQuestionBtn.textContent = "Siguiente Pregunta";
+            loadQuiz();
+        }
+
+        window.onload = loadQuiz;
+    </script>
+
+</body>
+</html>
