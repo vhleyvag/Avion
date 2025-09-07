@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario Interactivo - Aceleración de Avión</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .quiz-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+        .instructions {
+            background-color: #eef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 5px solid #55a;
+        }
+        .quiz-image-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .quiz-image {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .question-container {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .question-text {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .options-list {
+            list-style: none;
+            padding: 0;
+        }
+        .options-list li {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .options-list input[type="radio"] {
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .options-list label {
+            cursor: pointer;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+            flex-grow: 1;
+        }
+        .options-list label:hover {
+            background-color: #f0f0f0;
+        }
+        .feedback {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .feedback.correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .feedback.incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin-top: 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .navigation-buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .results-container {
+            text-align: center;
+            padding: 20px;
+            background-color: #e9f7ef;
+            border-radius: 5px;
+            border: 1px solid #a9d1b9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="quiz-container">
+        <h1 id="quiz-title">Análisis del Despegue de un Avión</h1>
+        <p class="instructions" id="quiz-instructions">Observa las gráficas que muestran el comportamiento de un avión durante el despegue. Responde las siguientes preguntas. Al terminar, recibirás retroalimentación sobre cada respuesta.</p>
+
+        <div class="quiz-image-container">
+            <img src="https://vhleyvag.github.io/Avion/Avion_Cuestionario_01b.png" alt="Gráficas de aceleración, velocidad y desplazamiento de un avión" class="quiz-image">
+        </div>
+
+        <div id="question-area">
+            <!-- Questions will be loaded here by JavaScript -->
+        </div>
+
+        <div class="navigation-buttons">
+            <button id="submit-answer" onclick="submitAnswer()" disabled>Enviar Respuesta</button>
+            <button id="next-question" onclick="loadNextQuestion()" style="display:none;">Siguiente Pregunta</button>
+        </div>
+
+        <div id="results-area" class="results-container" style="display:none;">
+            <h2>Resultados del Cuestionario</h2>
+            <p id="score-text"></p>
+            <button onclick="restartQuiz()">Reiniciar Cuestionario</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+          {
+            "id": 1,
+            "pregunta": "¿Qué representa la gráfica de puntos morados en la parte superior izquierda?",
+            "opciones": [
+              "La velocidad del avión en función del tiempo",
+              "La aceleración medida en distintos instantes de tiempo",
+              "El desplazamiento total del avión",
+              "La aceleración promedio constante"
+            ],
+            "respuesta_correcta": "La aceleración medida en distintos instantes de tiempo",
+            "retroalimentacion_correcta": "Correcto. Los puntos representan la aceleración en cada instante de tiempo registrada.",
+            "retroalimentacion_incorrecta": "Incorrecto. Observa que son valores puntuales de aceleración, no de velocidad ni desplazamiento."
+          },
+          {
+            "id": 2,
+            "pregunta": "¿Qué significa la línea morada horizontal en la gráfica superior derecha?",
+            "opciones": [
+              "El promedio de la velocidad",
+              "El valor constante de la aceleración promedio",
+              "El tiempo total del despegue",
+              "El desplazamiento máximo alcanzado"
+            ],
+            "respuesta_correcta": "El valor constante de la aceleración promedio",
+            "retroalimentacion_correcta": "Correcto. La línea morada horizontal representa la aceleración promedio del avión.",
+            "retroalimentacion_incorrecta": "Incorrecto. No representa ni la velocidad ni el tiempo, sino la aceleración promedio."
+          },
+          {
+            "id": 3,
+            "pregunta": "¿Qué relación existe entre la gráfica verde y la ecuación v<sub>x</sub> = v<sub>0</sub> + a<sub>x</sub>t?",
+            "opciones": [
+              "La gráfica verde muestra el desplazamiento",
+              "La gráfica verde muestra la aceleración",
+              "La gráfica verde muestra la velocidad calculada a partir de la aceleración promedio",
+              "La gráfica verde muestra el tiempo en función del desplazamiento"
+            ],
+            "respuesta_correcta": "La gráfica verde muestra la velocidad calculada a partir de la aceleración promedio",
+            "retroalimentacion_correcta": "Correcto. La fórmula v<sub>x</sub> = v<sub>0</sub> + a<sub>x</sub>t describe cómo crece la velocidad con el tiempo.",
+            "retroalimentacion_incorrecta": "Incorrecto. Esa gráfica representa la velocidad, no el desplazamiento ni la aceleración."
+          },
+          {
+            "id": 4,
+            "pregunta": "Si el tiempo inicial y el desplazamiento inicial son cero, ¿qué forma tendrá la gráfica de desplazamiento (azul)?",
+            "opciones": [
+              "Una línea recta creciente",
+              "Una curva parabólica",
+              "Una línea horizontal",
+              "Una curva senoidal"
+            ],
+            "respuesta_correcta": "Una curva parabólica",
+            "retroalimentacion_correcta": "Correcto. El desplazamiento depende cuadráticamente del tiempo cuando hay aceleración constante.",
+            "retroalimentacion_incorrecta": "Incorrecto. El desplazamiento crece de manera parabólica con el tiempo, no lineal ni senoidal."
+          },
+          {
+            "id": 5,
+            "pregunta": "¿Qué valor de velocidad se observa en el instante t = 12.616 s según la simulación?",
+            "opciones": [
+              "70 m/s",
+              "40 m/s",
+              "55.886 m/s",
+              "352.547 m/s"
+            ],
+            "respuesta_correcta": "55.886 m/s",
+            "retroalimentacion_correcta": "Correcto. A los 12.616 segundos, la velocidad es aproximadamente 55.886 m/s.",
+            "retroalimentacion_incorrecta": "Incorrecto. Observa en la gráfica verde que la velocidad está marcada como 55.886 m/s."
+          },
+          {
+            "id": 6,
+            "pregunta": "¿Qué distancia ha recorrido el avión al cabo de 12.616 s?",
+            "opciones": [
+              "352.547 m",
+              "55.886 m",
+              "100 m",
+              "12.616 m"
+            ],
+            "respuesta_correcta": "352.547 m",
+            "retroalimentacion_correcta": "Correcto. La gráfica azul muestra un desplazamiento de 352.547 m en ese instante.",
+            "retroalimentacion_incorrecta": "Incorrecto. Debes observar la gráfica azul del desplazamiento."
+          },
+          {
+            "id": 7,
+            "pregunta": "¿Qué condición inicial se asumió para la velocidad del avión en el modelo?",
+            "opciones": [
+              "v<sub>0</sub> = 10 m/s",
+              "v<sub>0</sub> = 0",
+              "v<sub>0</sub> = 55.886 m/s",
+              "v<sub>0</sub> = 100 m/s"
+            ],
+            "respuesta_correcta": "v<sub>0</sub> = 0",
+            "retroalimentacion_correcta": "Correcto. El avión parte del reposo al iniciar el recorrido.",
+            "retroalimentacion_incorrecta": "Incorrecto. Observa que la simulación establece v<sub>0</sub> = 0."
+          },
+          {
+            "id": 8,
+            "pregunta": "¿Qué representa el punto naranja en las gráficas?",
+            "opciones": [
+              "El tiempo inicial",
+              "El valor máximo de desplazamiento",
+              "El instante seleccionado con el deslizador",
+              "La aceleración mínima"
+            ],
+            "respuesta_correcta": "El instante seleccionado con el deslizador",
+            "retroalimentacion_correcta": "Correcto. El punto naranja marca el valor de tiempo que selecciona el usuario.",
+            "retroalimentacion_incorrecta": "Incorrecto. El punto naranja no es el tiempo inicial ni el máximo, sino el tiempo elegido en el deslizador."
+          },
+          {
+            "id": 9,
+            "pregunta": "¿Cómo se representa gráficamente el aumento de la velocidad con el tiempo en este caso?",
+            "opciones": [
+              "Con una línea verde recta en la gráfica de velocidad",
+              "Con una curva azul parabólica en la gráfica de desplazamiento",
+              "Con una línea morada horizontal",
+              "Con una nube de puntos morados"
+            ],
+            "respuesta_correcta": "Con una línea verde recta en la gráfica de velocidad",
+            "retroalimentacion_correcta": "Correcto. La velocidad crece linealmente en función del tiempo, lo que da una recta.",
+            "retroalimentacion_incorrecta": "Incorrecto. La línea verde muestra cómo la velocidad aumenta con el tiempo."
+          },
+          {
+            "id": 10,
+            "pregunta": "Si se duplicara la aceleración promedio, ¿qué pasaría con la gráfica de desplazamiento?",
+            "opciones": [
+              "Sería más empinada, aumentando más rápido",
+              "No cambiaría",
+              "Sería una línea recta",
+              "Se convertiría en horizontal"
+            ],
+            "respuesta_correcta": "Sería más empinada, aumentando más rápido",
+            "retroalimentacion_correcta": "Correcto. Con mayor aceleración, el desplazamiento crecería más rápido en el mismo tiempo.",
+            "retroalimentacion_incorrecta": "Incorrecto. Recuerda que el desplazamiento depende directamente de la aceleración."
+          }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let shuffledQuestions = [];
+
+        const questionAreaEl = document.getElementById('question-area');
+        const submitAnswerBtn = document.getElementById('submit-answer');
+        const nextQuestionBtn = document.getElementById('next-question');
+        const resultsAreaEl = document.getElementById('results-area');
+        const scoreTextEl = document.getElementById('score-text');
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+            }
+            return array;
+        }
+
+        function loadQuiz() {
+            shuffledQuestions = shuffleArray([...quizData]); // Shuffle questions
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            // Clear previous question and feedback
+            questionAreaEl.innerHTML = '';
+            submitAnswerBtn.style.display = 'inline-block';
+            nextQuestionBtn.style.display = 'none';
+            submitAnswerBtn.disabled = true; // Disabled until an option is selected
+
+            if (currentQuestionIndex < shuffledQuestions.length) {
+                const currentQuestion = shuffledQuestions[currentQuestionIndex];
+                const questionContainer = document.createElement('div');
+                questionContainer.classList.add('question-container');
+
+                const questionText = document.createElement('p');
+                questionText.classList.add('question-text');
+                questionText.innerHTML = `${currentQuestionIndex + 1}. ${currentQuestion.pregunta}`; // Use innerHTML for sub/sup
+                questionContainer.appendChild(questionText);
+
+                const optionsList = document.createElement('ul');
+                optionsList.classList.add('options-list');
+
+                // Shuffle options for the current question
+                const shuffledOptions = shuffleArray([...currentQuestion.opciones]);
+
+                shuffledOptions.forEach((optionText, index) => {
+                    const listItem = document.createElement('li');
+                    const radioInput = document.createElement('input');
+                    radioInput.type = 'radio';
+                    radioInput.name = `question-${currentQuestionIndex}`;
+                    radioInput.id = `q${currentQuestionIndex}-option${index}`;
+                    radioInput.value = optionText; // Store the option text as value
+                    radioInput.onchange = () => { submitAnswerBtn.disabled = false; };
+
+                    const label = document.createElement('label');
+                    label.htmlFor = `q${currentQuestionIndex}-option${index}`;
+                    label.innerHTML = optionText; // Use innerHTML for sub/sup
+                    
+                    listItem.appendChild(radioInput);
+                    listItem.appendChild(label);
+                    optionsList.appendChild(listItem);
+                });
+
+                questionContainer.appendChild(optionsList);
+                const feedbackDiv = document.createElement('div');
+                feedbackDiv.id = `feedback-${currentQuestionIndex}`;
+                feedbackDiv.classList.add('feedback');
+                questionContainer.appendChild(feedbackDiv);
+
+                questionAreaEl.appendChild(questionContainer);
+            } else {
+                showResults();
+            }
+        }
+
+        function submitAnswer() {
+            const currentQuestion = shuffledQuestions[currentQuestionIndex];
+            const selectedOption = document.querySelector(`input[name="question-${currentQuestionIndex}"]:checked`);
+
+            if (!selectedOption) {
+                alert("Por favor, selecciona una opción.");
+                return;
+            }
+
+            const selectedOptionValue = selectedOption.value;
+            const feedbackDiv = document.getElementById(`feedback-${currentQuestionIndex}`);
+
+            if (selectedOptionValue === currentQuestion.respuesta_correcta) {
+                feedbackDiv.innerHTML = currentQuestion.retroalimentacion_correcta; // Use innerHTML for sub/sup
+                feedbackDiv.classList.remove('incorrect');
+                feedbackDiv.classList.add('correct');
+                score++;
+            } else {
+                feedbackDiv.innerHTML = currentQuestion.retroalimentacion_incorrecta; // Use innerHTML for sub/sup
+                feedbackDiv.classList.remove('correct');
+                feedbackDiv.classList.add('incorrect');
+            }
+
+            document.querySelectorAll(`input[name="question-${currentQuestionIndex}"]`).forEach(input => {
+                input.disabled = true;
+            });
+            submitAnswerBtn.disabled = true;
+            submitAnswerBtn.style.display = 'none';
+            nextQuestionBtn.style.display = 'inline-block';
+
+            if (currentQuestionIndex === shuffledQuestions.length - 1) {
+                nextQuestionBtn.textContent = "Ver Resultados";
+            }
+        }
+
+        function loadNextQuestion() {
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+
+        function showResults() {
+            questionAreaEl.style.display = 'none';
+            submitAnswerBtn.style.display = 'none';
+            nextQuestionBtn.style.display = 'none';
+            resultsAreaEl.style.display = 'block';
+            scoreTextEl.textContent = `Obtuviste ${score} de ${shuffledQuestions.length} preguntas correctas.`;
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            questionAreaEl.style.display = 'block';
+            resultsAreaEl.style.display = 'none';
+            nextQuestionBtn.textContent = "Siguiente Pregunta";
+            loadQuiz(); // Re-load to shuffle questions again
+        }
+
+        window.onload = loadQuiz;
+    </script>
+
+</body>
+</html>
